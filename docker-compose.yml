@@ -1,0 +1,79 @@
+version: '3.7'
+services:
+
+  redis:
+    container_name: sensu-redis
+    image: redis:alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data-redis/:/data/
+    ports:
+      - 6379:6379
+    networks:
+      - default
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    env_file:
+      - files/rabbitmq.env
+    ports:
+      - 5672:5672   # daemon API
+      - 15672:15672 # management API
+    networks:
+      - default
+
+  sensu_server:
+    container_name: sensu_server
+    build: .
+    image: sensu
+    restart: unless-stopped
+    dns: 8.8.8.8
+    volumes:
+      - ${PWD}/files/uchiwa.json:/etc/sensu/uchiwa.json
+      - ${PWD}/files/transport.json:/etc/sensu/transport.json
+      - ${PWD}/files/config.json:/etc/sensu/config.json
+    depends_on:
+      - redis
+      - rabbitmq
+    ports:
+      - 4567:4567
+      - 3000:3000
+    networks:
+      - default
+    labels:
+      - traefik.port=3000
+      - traefik.frontend.entryPoints=http,https
+      - traefik.frontend.redirect.entryPoint=https
+      - traefik.docker.network=proxy
+      - traefik.frontend.rule=Host:somehost.somedomain.com
+
+  sensu_client:
+    container_name: sensu_client
+    build: .
+    image: sensu
+    restart: unless-stopped
+    dns: 8.8.8.8
+    volumes:
+      - ${PWD}/files/transport.json:/etc/sensu/transport.json
+    depends_on:
+      - sensu_server
+    networks:
+      - default
+    volumes: 
+      - ./conf.d/:/etc/sensu/conf.d/
+    command: [ "/opt/sensu/embedded/bin/ruby" , "/opt/sensu/bin/sensu-client", "-c" , "/etc/sensu/config.json" , "-d" , "/etc/sensu/conf.d" , "-e" , "/etc/sensu/extensions" ]
+
+
+networks:
+  default:
+    name: proxy
+    external: true
+    driver: overlay
+
+      
+
+

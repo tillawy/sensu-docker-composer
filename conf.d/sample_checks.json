@@ -1,0 +1,10 @@
+{
+    "checks": {
+        "easy_display_downloads": {
+            "command": "/opt/sensu/embedded/bin/ruby /opt/sensu/embedded/bin/check-http.rb --url 'https://downloads.easydisplay.info/downloads/' --response-code 200 -r",
+            "standalone": true,
+            "interval": 60,
+            "handlers": ["mailer", "debug"]
+        }
+    }
+}

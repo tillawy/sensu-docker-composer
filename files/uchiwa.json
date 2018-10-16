@@ -1,0 +1,22 @@
+{
+  "sensu": [
+    {
+      "name": "Sensu",
+      "host": "127.0.0.1",
+      "ssl": false,
+      "port": 4567,
+      "user": "sensu",
+      "pass": "BadPass56__",
+      "path": "",
+      "timeout": 5000,
+      "loglevel": "debug"
+    }
+  ],
+  "uchiwa": {
+    "user": "admin",
+    "pass": "secret",
+    "port": 3000,
+    "stats": 10,
+    "refresh": 10
+  }
+}
